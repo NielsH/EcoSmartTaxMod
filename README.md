@@ -1,5 +1,5 @@
 # Eco Smart Tax Mod
-A server mod for Eco 11.1 that extends the law and economy system with the following:
+A server mod for Eco that extends the law and economy system with the following:
  - A smart tax legal action that defers collection to avoid transaction spam, and tracks debt if the citizen can't pay
  - A smart payment legal action that tracks credit if the government can't pay, and can be used to pay off tax debt
  - A smart rebate legal action that cancels out tax debt without being backed by currency
@@ -9,8 +9,24 @@ A server mod for Eco 11.1 that extends the law and economy system with the follo
  - Legal expressions to query the citizen's current tax debt and payment credit within a law
  - Legal expressions to query aggregate financial data such as how many taxes were paid within a given time period by a certain demographic
 
+## Eco 0.14
+This fork supports **Eco 0.14.1 and 0.14.2 with the same dll**. The upstream 0.8.2 release (built for Eco 0.11) still loads on
+0.14.1, but on 0.14.2 every tax collection and payment fails with `MissingMethodException`: Eco 0.14.2 changed
+`TransferInternalUtils.TransferInternal`, the method that moves the money.
+
+- `TransferCompat.cs` finds that method by reflection at startup and fills its parameters by name, so each Eco version gets the
+  arguments it takes. The server log says which signature is in use: `[SmartTax] Transfers use TransferInternal(...)`.
+- On 0.14.2 every transfer is labelled for the new economy history, the way vanilla's law actions do it: taxes as `Tax`
+  (with the tax code as the tax id, and the settlement), Smart Transfers as `GovernmentTransfer`, and payments as
+  `FundsAllocation`.
+- Built against the 0.14.1 reference assemblies on .NET 10. Every Eco type and member it uses resolves on both 0.14.1.1 and
+  0.14.2.0, and the Eco enums it uses have the same values in both.
+
+`tools/rig/SmartTaxRigCommands.cs` is a test harness for a local server (not built into the dll): it records a tax, a
+transfer and a payment, runs a tax tick, and reports the balances and ledger entries. See the comment at its top.
+
 ## Installation
-1. Download `EcoSmartTaxMod.dll` from the [latest release](https://github.com/thomasfn/EcoSmartTaxMod/releases).
+1. Download `EcoSmartTaxMod.dll` from the [latest release](https://github.com/thomasfn/EcoSmartTaxMod/releases) (Eco 0.11), or build this fork for Eco 0.14.
 2. Copy the `EcoSmartTaxMod.dll` file to `Mods` folder of the dedicated server.
 3. Restart the server.
 
@@ -218,16 +234,16 @@ The tax card is stored in the game save along with all other objects such as ban
 
 ### Windows
 
-1. Open `EcoSmartTaxMod.sln` in Visual Studio 2019/2022
+1. Open `EcoSmartTaxMod.sln` in Visual Studio 2022 or later (.NET 10 SDK)
 2. Build the `EcoSmartTaxMod` project in Visual Studio
-3. Find the artifact in `EcoSmartTaxMod\bin\{Debug|Release}\net8.0`
+3. Find the artifact in `EcoSmartTaxMod\bin\{Debug|Release}\net10.0`
 
 ### Linux
 
 1. Enter the `EcoSmartTaxMod` directory and run:
 `dotnet restore`
 `dotnet build`
-2. Find the artifact in `EcoSmartTaxMod/bin/{Debug|Release}/net8.0`
+2. Find the artifact in `EcoSmartTaxMod/bin/{Debug|Release}/net10.0`
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
