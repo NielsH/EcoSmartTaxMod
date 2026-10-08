@@ -506,7 +506,7 @@ namespace Eco.Mods.SmartTax
             {
                 // They can be fully paid
                 TaxLog.AddTaxEvent(new PaymentEvent(paymentCredit.Amount, paymentCredit));
-                TransferInternalUtils.TransferInternal(pack, paymentCredit.Amount, paymentCredit.Currency, paymentCredit.SourceAccount, Creator.BankAccount, null, Localizer.NotLocalizedStr(paymentCredit.PaymentCode), acc);
+                TransferCompat.Transfer(pack, paymentCredit.Amount, paymentCredit.Currency, paymentCredit.SourceAccount, Creator.BankAccount, Localizer.NotLocalizedStr(paymentCredit.PaymentCode), acc, TransferCompat.FundsAllocation);
                 paymentCredit.Amount = 0.0f;
                 PaymentCredits.Remove(paymentCredit);
                 return true;
@@ -515,7 +515,7 @@ namespace Eco.Mods.SmartTax
             {
                 // They can be partially paid
                 TaxLog.AddTaxEvent(new PaymentEvent(availableAmount, paymentCredit));
-                TransferInternalUtils.TransferInternal(pack, availableAmount, paymentCredit.Currency, paymentCredit.SourceAccount, Creator.BankAccount, null, Localizer.NotLocalizedStr(paymentCredit.PaymentCode), acc);
+                TransferCompat.Transfer(pack, availableAmount, paymentCredit.Currency, paymentCredit.SourceAccount, Creator.BankAccount, Localizer.NotLocalizedStr(paymentCredit.PaymentCode), acc, TransferCompat.FundsAllocation);
                 paymentCredit.Amount -= availableAmount;
                 return true;
             }
@@ -536,6 +536,9 @@ namespace Eco.Mods.SmartTax
 
             // Iterate their accounts, searching for funds to settle the debt
             var accounts = GetTaxableAccounts(taxDebt.Currency, taxDebt.Settlement);
+            var transferType = taxDebt.IsTransfer ? TransferCompat.GovernmentTransfer : TransferCompat.Tax;
+            var taxId = taxDebt.IsTransfer ? null : taxDebt.TaxCode;
+            var taxSettlement = taxDebt.IsTransfer ? null : taxDebt.Settlement;
             float amountToCollect = taxDebt.Amount;
             float amountCollected = 0.0f;
             foreach (var (account, ownership) in accounts)
@@ -546,7 +549,7 @@ namespace Eco.Mods.SmartTax
                 if (amount >= amountToCollect)
                 {
                     // The account balance covers the debt fully
-                    TransferInternalUtils.TransferInternal(pack, amountToCollect, taxDebt.Currency, account, taxDebt.TargetAccount, null, Localizer.NotLocalizedStr(taxDebt.TaxCode), acc);
+                    TransferCompat.Transfer(pack, amountToCollect, taxDebt.Currency, account, taxDebt.TargetAccount, Localizer.NotLocalizedStr(taxDebt.TaxCode), acc, transferType, taxId, taxSettlement);
                     amountCollected += amountToCollect;
                     amountToCollect = 0.0f;
                     break;
@@ -554,7 +557,7 @@ namespace Eco.Mods.SmartTax
                 else if (amount > Transfers.AlmostZero)
                 {
                     // The account balance covers the debt partially
-                    TransferInternalUtils.TransferInternal(pack, amount, taxDebt.Currency, account, taxDebt.TargetAccount, null, Localizer.NotLocalizedStr(taxDebt.TaxCode), acc);
+                    TransferCompat.Transfer(pack, amount, taxDebt.Currency, account, taxDebt.TargetAccount, Localizer.NotLocalizedStr(taxDebt.TaxCode), acc, transferType, taxId, taxSettlement);
                     amountCollected += amount;
                     amountToCollect -= amount;
                 }

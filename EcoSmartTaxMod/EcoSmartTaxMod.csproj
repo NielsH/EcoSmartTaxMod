@@ -1,8 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>Eco.Mods.SmartTax</RootNamespace>
+    <!-- 0.9: Eco 0.14 (one dll for 0.14.1 and 0.14.2, see TransferCompat.cs). Release builds override AssemblyVersion with the tag. -->
+    <Version>0.9.0</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -14,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Eco.ReferenceAssemblies" Version="0.11.1.12-beta-release-881" />
+    <PackageReference Include="Eco.ReferenceAssemblies" Version="0.14.1.1-beta-release-1079" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 

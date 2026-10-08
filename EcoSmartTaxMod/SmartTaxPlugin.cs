@@ -75,7 +75,19 @@ namespace Eco.Mods.SmartTax
             this.tickWorker = PeriodicWorkerFactory.Create(TimeSpan.FromSeconds(1), this.TryTickAll);
         }
 
-        public void Initialize(TimedTask timer) => data.Initialize();
+        public void Initialize(TimedTask timer)
+        {
+            data.Initialize();
+            // Resolve the transfer method now, so an Eco version this mod can't transfer on is reported at startup rather than every tick.
+            try
+            {
+                Logger.Info($"Transfers use {TransferCompat.Signature}");
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Can't make transfers on this Eco version, so taxes and payments won't be collected: {(ex.InnerException ?? ex).Message}");
+            }
+        }
         public void InitializeRegistrars(TimedTask timer) => data.InitializeRegistrars();
         public string GetDisplayText() => string.Empty;
         public string GetStatus() => string.Empty;
